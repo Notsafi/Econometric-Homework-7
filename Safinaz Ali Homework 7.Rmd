@@ -1,0 +1,78 @@
+---
+title: "Homework 7"
+author: "safinaz alI"
+date: "11/3/2022"
+output: html_document
+---
+
+#Literature Review 
+#Team: Valery Delgado
+
+Article #1:Does overcrowding and health insurance type impact patient outcomes in emergency departments?
+URL:https://healtheconomicsreview.biomedcentral.com/articles/10.1186/2191-1991-3-25
+Summary: As I looked over this research paper I really found it interesting because I found it to be a great sample of a research paper that talks about similar variables I will be looking at for my thesis. Also their findings were very detailed as they learned how the type of insurance you have can affect longer wait periods and raise the risk of patients  experiencing bad outcomes across the board. Additionally, having insurance (private or Medicare) lessens some of the negative effects on patients' outcomes, but not having insurance or using Medicaid worsens those effects. Additionally, the data indicate that individuals who had a main physician had a better prognosis. Furthermore, they also predicted, having an acute health condition or being older are linked to poor patient outcomes, in part because a poor result might be death. And  at last, they included that having a bad outcome is more likely whether you're black or male. Their findings are reasonable because they did run multiple restricts to test both sides of having  In this research they used  several methods to explain this connection by estimating a standard profit model and an instrumental variable probit model. They also ran multiple robustness checks and extended their models to test for sensitivity and a IV Probit model.   These econometric techniques they did in the research paper are appropriate because they did a probit model to determine the likelihood that  their variables of type of insurance with given qualities of demographic falls into a particular category of wait time in ER. Their results showed a clear statement of the impact. How time waits is either short or long, and they based it off of many factors either by demographic, health status and more which I find interesting because I would have assumed that anyone that enters the emergency room will be treated fairly since it's sometimes life or death and based on money or the color of your skin. 
+
+Article #2:The Relationship Between Demographic, Socioeconomic, and Health-Related Parameters and the Impact of COVID-19 on 24 Regions in India: Exploratory Cross-Sectional Study
+URL:https://healtheconomicsreview.biomedcentral.com/articles/10.1186/2191-1991-3-25
+Summary: This research paper specifically focused their research question in India, The reason I want to use this article is because I want to see what are the different variables they used with very specific and limited data. It also gives us some background information on some international countries on how their health is doing and what it can be based on. Maybe this topic is a universal issue which is why I'm interested in their findings because it came to be a similar finding to how demographics can also affect their health issue. An exploratory cross-sectional study based on information formally published by the Indian government was employed in this study. The Ministry of Health and Family Welfare's website was used to find out information on COVID-19.Based on the research paper the male-to-female sex ratio and the existence of an international airport in a given state were both found to have an impact on COVID-19. The sex ratio and other serious illnesses, notably heart disease, were related adversely with the death rate for COVID-19. Multiple studies showed that the sex ratio was strongly and adversely correlated with the COVID-19 crude mortality rate. Some econometric techniques they use were using both bivariate and multivariate analyses. In which they did some based stats of finding the variance to see the significant level of the cause of variables. I found this research paper accurate but not as good in running their data because they only did basic stats on the data, they did not create any regression models or any predicted probit models  to help get an accurate analysis for their findings. Essentially I don't find it appropriate as they just focus on finding a p value and seeing if it was lower or higher then the significance level of their factors. I felt as if their findings were already known or they didn't look at enough diseases to see what other factors there can be that created a higher risk of a death rate if having covid like education status or even if vaccine was available in India that could have prevented it. 
+
+```{r setup, include=FALSE}
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+load("~/Desktop/Statistic & Econmetric/Data/Household_Pulse_data_w48.RData")
+attach(Household_Pulse_data)
+
+#For this data i decided to look at factors that depict if people get vaccinated or not and some major variables was people kind of work in which you can see people who are self employed or work in a family buisiness are less likely to get vaccinated while people in private or government are likely with nonprofit company employees are more likely. another variable was region and the reason i chose that was because i felt as if when the vaccine first came out it was a limited amount in certain states however based on the regression it seems to not really play  a factor as it was all negative. Lastly i looked at where people live and i realize if you lived in a one family you were less likely to get vaccinated and that could be because of the fact that you are secluded in your home versus a person in a building most likely get vaccinated because there are other people around. Lastly for race Asians were more likely to get vaccinated and that could be because of the risk factors. 
+
+#creating a subgroup 
+Household_Pulse_data$vaxx <- (Household_Pulse_data$RECVDVACC == "yes got vaxx")
+is.na(Household_Pulse_data$vaxx) <- which(Household_Pulse_data$RECVDVACC == "NA") 
+
+ #This is my subgroup i created for age in which i focused on people over 16 since that is uaully the age to start working
+pick_use1 <- (Household_Pulse_data$TBIRTH_YEAR < 2004) 
+dat_use1 <- subset(Household_Pulse_data, pick_use1)
+dat_use1$RECVDVACC <- droplevels(dat_use1$RECVDVACC) 
+
+table(Household_Pulse_data$vaxx,Household_Pulse_data$KINDWORK)
+
+vaxx_factor <- as.factor(Household_Pulse_data$vaxx)
+levels(vaxx_factor)
+levels(vaxx_factor) <- c("no","yes")
+
+#for the NA me and my group decided to count it as not getting vaccinated just because they did not respondits most likely because they didnt get vaccinate
+nas <- dat_use1$RECVDVACC == 'NA'
+dat_use1$RECVDVACC[nas] = 'no did not get vaxx'
+summary(dat_use1$RECVDVACC)
+
+#here i created a logit model to help predict the relationship between dataset variables on what im looking for specifically. glm function helped create a generalize the linear regression because the variables chosen are constrained
+model_logit1 <- glm(vaxx ~ TBIRTH_YEAR + KINDWORK + RRACE + REGION + LIVQTRRV, family = binomial, data = dat_use1)
+summary(model_logit1)
+
+#First prediction 
+new_data_to_be_predicted <- data.frame(TBIRTH_YEAR = 1990,
+                                       KINDWORK = factor("self employed", levels = levels(dat_use1$KINDWORK)),
+                                       RRACE = factor("Black",levels = levels(dat_use1$RRACE)),
+                                      REGION = factor("South",levels = levels(dat_use1$REGION)),
+                                       LIVQTRRV = factor("live in bldg w 5+ apts", levels = levels(dat_use1$LIVQTRRV))
+)
+predict(model_logit1,new_data_to_be_predicted)
+
+#Another prediction sample 
+new_data_to_be_predicted2 <- data.frame(TBIRTH_YEAR = 1990,
+                                       KINDWORK = factor("work for nonprofit", levels = levels(dat_use1$KINDWORK)),
+                                       RRACE = factor("White",levels = levels(dat_use1$RRACE)),
+                                      REGION = factor("Northeast",levels = levels(dat_use1$REGION)),
+                                       LIVQTRRV = factor("live in detached 1 family", levels = levels(dat_use1$LIVQTRRV))
+)
+predict(model_logit1,new_data_to_be_predicted2)
+
+#Based on the results prediction 2 recieved a higher outcome nased on accuracy compared to one because more of the regression had significant factors. 
+```
+
